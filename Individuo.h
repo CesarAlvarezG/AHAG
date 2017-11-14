@@ -1,0 +1,118 @@
+/////////////////////////////////AG.H//////////////////////////////////////////
+/*Esta libreria contiene las clases y funciones utilizadas por el algoritmo
+genetico, asi como todo aquello que necesite*/
+
+////////////////////////////////LIBRERIAS///////////////////////////////////////
+
+#ifndef _INDIVIDUO_h
+#define _INDIVIDUO_h
+#include "Actores.h"
+#include "Gui.h"
+#include "PERFGRAP.h"
+#include "Bits.h"
+#include "Cadenas.h"
+
+////////////////////////VARIABLES, CONSTANTES y ESTRUTURAS//////////////////////
+struct TAlelo
+{
+ int seccion;//Indice de la seccion
+ String grupo;//Codigo del grupo
+ String materia;//Codigo de la materia
+ String semestre;//Codigo del semestre
+};
+
+class TJornada
+{
+ private:
+ public:
+        //Constructores
+        TJornada();//Contructor por defecto
+        TJornada(TJornada &a);//Constructor de copia
+        //Destructor
+        ~TJornada();
+        //Miembros
+        TCita cita;
+        Salon salon;
+        //Sobrecarga de los operadores
+        TJornada& operator=(TJornada&);
+        friend int operator==(const TJornada&,const TJornada&);
+        friend int operator!=(const TJornada&,const TJornada&);
+        friend int operator<(const TJornada&,const TJornada&);
+        friend int operator>(const TJornada&,const TJornada&);
+        friend int operator<=(const TJornada&,const TJornada&);
+        friend int operator>=(const TJornada&,const TJornada&);
+};
+
+//////////////////////////////////CLASES////////////////////////////////////////
+
+class Individuo
+{
+ private:
+         static int lc;//Longitud de cruce
+         static Horario *carrera;
+         static TAlelo *alelos;
+         static double dmax;//Distancia maxima entre salones
+         static int longitud_i;//Variable que indica la longitud de los individuos
+//------------------------------------------------------------------------------
+         TCita *Tiempos;//Primer cromosoma
+         int *Salones;//Segundo cromosoma
+//------------------------------------------------------------------------------
+         double f,fe,fs,fp;
+//----------------------------------------------------------------------------
+         int buscar_ale(TAlelo&);
+         int solapamiento(TCita *t,int n);
+         int n_secc_est(Estudiante&);
+         TCita* apilar_est(Estudiante&);
+         int n_secc_pro(Profesor&);
+         TCita* apilar_pro(Profesor&);
+         int apilar_sal(Estudiante&,TJornada*);
+         double desplazamiento(TJornada *jor,int n);
+         void estabilidad(void);
+//----------------------------------------------------------------------------
+         double fitnessp(void);/*Funcion encargada de evaluar el fitness de
+                                   los profesores*/
+         double fitnesse(void);/*Funcion encargada de evaluar el fitness de
+                                   los estudiantes*/
+         double fitnesss(void);/*Funcion encargada de evaluar el fitness de
+                                   los salones*/
+//*----------------------------------------------------------------------------
+ public:
+        //Constructores
+        Individuo();//Contructor por defecto
+        Individuo(Individuo &a);//Constructor de copia
+        //Destructor
+        ~Individuo();
+        //Sobrecarga de los operadores
+        Individuo& operator=(Individuo&);
+        friend int operator==(const Individuo&,const Individuo&);
+        friend int operator!=(const Individuo&,const Individuo&);
+        friend int Hamming(const Individuo&,const Individuo&);
+//------------------------------------------------------------------------------
+        double fitness(void);//Funcion encargada de calcular su Fitness
+        void Inicializar(void);//Funcion encargada de Inicializar el individuo
+        void gen_ram(void);//Funcion encargada de crear un individuo de Adn aleatorio
+        void ingre_lc(int l);//Funcion encargada de ingresar la longitud de cruce
+        int dar_lc(void){return lc;}
+        void cruzar(const Individuo &a,const Individuo &b);
+        //Funcion encargada de realizar el cruce de dos individuos
+        void mutar(void);//Funcion encargada de mutar un indivduo
+        int dar_bits(void);//Funcion encargada de retornar el numero total de bits
+//----------------------------------------------------------------------------
+        void set_hor(Horario*);
+        Horario* get_hor(void);
+        void convertir(void);
+        void desconvertir(void);
+//----------------------------------------------------------------------------
+        float dar_fe(void);
+        float dar_fs(void);
+        float dar_fp(void);
+        float dar_f(void);
+//----------------------------------------------------------------------------
+        friend ostream& operator<< (ostream&,const Individuo&);
+        friend istream& operator>> (istream&,Individuo&);
+};
+
+
+//////////////////////////////////FUNCIONES/////////////////////////////////////
+
+#endif

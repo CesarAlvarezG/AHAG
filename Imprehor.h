@@ -1,0 +1,37 @@
+#ifndef _Imprehor_h
+#define _Imprehor_h
+
+#include "Actores.h"
+#include <system.hpp>
+#include <Printers.hpp>
+#include <fstream.h>
+#include <StdCtrls.hpp>
+
+class Imprehora
+{
+        TPrinter *Prntr;
+        TCita w;
+        String q;
+        int x,xp,y,yp;
+        void inicializar_imp(void);
+        void inicializar_hoja(void);
+        void finalizar_hoja(void);
+        void finalizar_imp(void);
+        void posicionar(void);
+        void nueva_linea(void);
+        void printf_tex(char *text);
+        void imp_sem(int ind_sem);
+        void imp_mat(int ind_sem,int ind_mat);
+        void imp_gru(int ind_sem,int ind_mat,int ind_gru);
+        void imp_secc(int ind_sem,int ind_mat,int ind_gru,int ind_secc);
+        void centrar(char *text);
+ public:
+        Horario carr;
+        Imprehora();
+        ~Imprehora();
+        void imprimir();
+};
+
+
+#endif
+ 

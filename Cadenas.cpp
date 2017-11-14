@@ -1,0 +1,210 @@
+#include "Cadenas.h"
+
+template <class T> int indice(T *cadena,T &elemento,int &n)
+{
+ int i;
+ if(n==0)
+   {
+    return -1;
+   }
+   else{
+        for(i=0;i<n;i++)
+           {
+            if(cadena[i]==elemento)return i;
+           }
+        return -1;
+       }
+}
+
+/******************************************************************************/
+
+template <class T> int agregar(T *cadena,T &elemento,int &n)
+{
+ T *tem;
+ int i,j;
+ if(n<0)return -1;
+ if(n==0)
+   {
+    cadena=new T [1];
+    cadena[0]=elemento;
+    n++;
+    return 1;
+   }
+   else{
+        j=n+1;
+        tem= new T [j];
+        for(i=0;i<n;i++)
+           {
+            tem[i]=cadena[i];
+           }
+        tem[i]=elemento;
+        delete [] cadena ;
+        n++;
+        cadena = new T [n];
+        for(i=0;i<n;i++)
+           {
+            cadena[i]=tem[i];
+           }
+        delete [] tem;
+       }
+ return n;
+}
+
+/******************************************************************************/
+
+template <class T> int quitar(T *cadena,T &elemento,int &n)
+{
+ int i,j,k;
+ T *tem;
+ bool retiro;
+ k=-1;
+ retiro =false;
+ if(n<=0)return -1;
+ tem=new T [n];
+ for(i=0,j=0;j<n;i++,j++)
+    {
+     if(retiro==false&&cadena[j]==elemento)
+       {
+        k=j;
+        j++;
+        retiro=true;
+       }
+     tem[i]=cadena[j];
+    }
+ delete [] cadena;
+ if(retiro==true)n--;
+ cadena=new T [n];
+ for(i=0;i<n;i++)
+    {
+     cadena[i]=tem[i];
+    }
+ delete [] tem;
+ return k;
+}
+
+/******************************************************************************/
+
+template <class T> int agregar(T *cadena,T &elemento,int &n,int ind)
+{
+ T *tem;
+ int i,j;
+ bool add;
+ add=false;
+ if(n<0)return -1;
+ if(ind<0)
+   {
+    return -1;
+   }
+ if(n==0)
+   {
+    cadena=new T [1];
+    cadena[0]=elemento;
+    n++;
+    return 1;
+   }
+   else{
+        j=n+1;
+        tem= new T [j];
+        for(i=0,j=0;j<n;i++,j++)
+           {
+            if(ind==i)
+              {
+               tem[i]=elemento;
+               i++;
+               add=true;
+              }
+            tem[i]=cadena[j];
+           }
+        delete [] cadena;
+        if(add==true)n++;
+        cadena = new T [n];
+        for(i=0;i<n;i++)
+           {
+            cadena[i]=tem[i];
+           }
+        delete [] tem;
+       }
+ return n;
+}
+
+/******************************************************************************/
+
+template <class T> int quitar(T *cadena,T &elemento,int &n,int ind)
+{
+ int i,j,k;
+ T *tem;
+ k=-1;
+ if(ind<0)return-1;
+ bool retiro;
+ retiro=false;
+ if(n<=0)return -1;
+ tem=new T [n];
+ for(i=0,j=0;j<n;i++,j++)
+    {
+     if(retiro==false&&j==ind)
+       {
+        k=j;
+        j++;
+        retiro=true;
+       }
+     tem[i]=cadena[j];
+    }
+ delete [] cadena;
+ if(retiro==true)n--;
+ cadena=new T [n];
+ for(i=0;i<n;i++)
+    {
+     cadena[i]=tem[i];
+    }
+ delete [] tem;
+ return k;
+}
+
+/******************************************************************************/
+
+template <class T> void permutar(T &a,T &b)
+{
+ T c;
+ c=a;
+ a=b;
+ b=c;
+}
+
+/******************************************************************************/
+
+template <class T> void ordenar(T *cadena,Orden orden,int n,int i=0)
+{
+ int i_inf,i_sup,i_cam;
+ T ele_cam;
+ if((n-i)<1)return;//Condicion de estabilidad para la recursividad
+ i_inf=i;
+ i_cam=n-1;
+ i_sup=i_cam-1;
+ ele_cam=cadena[i_cam];
+ for(;i_inf<i_sup;i_inf++,i_sup--)
+    {
+     switch(orden)
+           {
+            case Min_Max:
+                         if(cadena[i_inf]>ele_cam&&cadena[i_sup]<ele_cam)
+                           {
+                            permutar(cadena[i_inf],cadena[i_sup]);
+                           }
+            break;
+            case Max_Min:
+                         if(cadena[i_inf]<ele_cam&&cadena[i_sup]>ele_cam)
+                           {
+                            permutar(cadena[i_inf],cadena[i_sup]);
+                           }
+            break;
+            default: return;
+           }
+    }
+ permutar(cadena[i_inf],cadena[i_cam]);
+ ordenar(cadena,orden,i_inf,i);//Recursividad del algoritmo
+ ordenar(cadena,orden,n,i_sup);//Recursividad del algoritmo
+}
+
+/******************************************************************************/
+
+

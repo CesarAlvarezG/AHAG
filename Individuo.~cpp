@@ -1,0 +1,731 @@
+//////////////////////////////AG.CPP////////////////////////////////////////////
+
+/////////////////////////////LIBRERIAS//////////////////////////////////////////
+
+#include "Individuo.h"
+
+///////////////////////////////VARIABLES////////////////////////////////////////
+
+///////////////////////////////FUNCIONES////////////////////////////////////////
+
+///////////////////////////////CONSTRUTOR///////////////////////////////////////
+
+TJornada::TJornada()
+{
+}
+
+/******************************************************************************/
+
+TJornada::TJornada(TJornada &a)
+{
+ cita=a.cita;
+ salon=a.salon;
+}
+
+/******************************************************************************/
+
+Individuo::Individuo()
+{
+ Tiempos=NULL;
+ Salones=NULL;
+ f=0;
+ fe=0;
+ fs=0;
+ fp=0;
+}
+
+/******************************************************************************/
+
+Individuo::Individuo(Individuo &a)
+{
+ int i;
+ Tiempos=new TCita [longitud_i];
+ Salones=new int [longitud_i];
+ for(i=0;i<longitud_i;i++)
+    {
+     Tiempos[i]=a.Tiempos[i];
+     Salones[i]=a.Salones[i];
+    }
+ f=a.f;
+ fe=a.fe;
+ fs=a.fs;
+ fp=a.fp;
+}
+
+/////////////////////////////DESTRUCTOR/////////////////////////////////////////
+
+TJornada::~TJornada()
+{
+}
+
+/******************************************************************************/
+
+Individuo::~Individuo()
+{
+ if(Tiempos!=NULL)delete [] Tiempos;
+ Tiempos=NULL;
+ if(Salones!=NULL)delete [] Salones;
+ Salones=NULL;
+}
+
+////////////////////////FUNCIONES JORNADA///////////////////////////////////////
+
+TJornada& TJornada::operator=(TJornada &a)
+{
+ cita=a.cita;
+ salon=a.salon;
+ return (*this);
+}
+
+/******************************************************************************/
+
+int operator==(const TJornada &a,const TJornada &b)
+{
+ return a.cita==b.cita;
+}
+
+/******************************************************************************/
+
+int operator!=(const TJornada &a,const TJornada &b)
+{
+ return a.cita!=b.cita;
+}
+
+/******************************************************************************/
+
+int operator<(const TJornada &a,const TJornada &b)
+{
+ return a.cita<b.cita;
+}
+
+/******************************************************************************/
+
+int operator>(const TJornada &a,const TJornada &b)
+{
+ return a.cita>b.cita;
+}
+
+/******************************************************************************/
+
+int operator<=(const TJornada &a,const TJornada &b)
+{
+ return a.cita<=b.cita;
+}
+
+/******************************************************************************/
+
+int operator>=(const TJornada &a,const TJornada &b)
+{
+ return a.cita>=b.cita;
+}
+
+/******************************************************************************/
+
+
+////////////////////////FUNCIONES INDIVIUO///////////////////////////////////////
+
+/*---------------------------PRIVADAS-----------------------------------------*/
+
+int Individuo::buscar_ale(TAlelo &a)
+{
+ int ind_ale;
+ for(ind_ale=0;ind_ale<longitud_i;ind_ale++)
+    {
+     if(a.semestre==alelos[ind_ale].semestre)
+       {
+        if(a.materia==alelos[ind_ale].materia)
+          {
+           if(a.grupo==alelos[ind_ale].grupo)
+             {
+              if(a.seccion==alelos[ind_ale].seccion)
+                {
+                 return ind_ale;
+                }
+             }
+          }
+       }
+    }
+ return -1;   
+}
+
+/******************************************************************************/
+
+int Individuo::n_secc_est(Estudiante &est)
+{
+ int ind_gru,ind_mat,ind_sem;
+ int ind_gru_est,ind_secc_est,n_secc,acc_secc;
+ //Conteo de las secciones completas
+ for(ind_gru_est=0,acc_secc=0;ind_gru_est<est.asig.dar_tol();ind_gru_est++)
+    {
+     ind_sem=carrera->ind_seme(est.asig.dar_sem(ind_gru_est));
+     if(ind_sem<0)continue;
+     ind_mat=carrera->Sem[ind_sem].ind_mat(est.asig.dar_mat(ind_gru_est));
+     if(ind_mat<0)continue;
+     ind_gru=carrera->Sem[ind_sem].mat[ind_mat].ind_gru(est.asig.dar_gru(ind_gru_est));
+     if(ind_gru<0)continue;
+     acc_secc+=carrera->Sem[ind_sem].mat[ind_mat].gru[ind_gru].n_secc();
+    }
+ return acc_secc;
+}
+
+/******************************************************************************/
+
+TCita* Individuo::apilar_est(Estudiante &est)
+{
+ int ind_gru,ind_mat,ind_sem,ind_tiem;
+ int ind_gru_est,ind_secc_est,n_secc,acc_secc;
+ TCita *tem;
+ TAlelo tem_ale;
+ //Conteo de las secciones completas
+ for(ind_gru_est=0,acc_secc=0;ind_gru_est<est.asig.dar_tol();ind_gru_est++)
+    {
+     ind_sem=carrera->ind_seme(est.asig.dar_sem(ind_gru_est));
+     if(ind_sem<0)continue;
+     tem_ale.semestre=carrera->Sem[ind_sem].dar_nombre();
+     ind_mat=carrera->Sem[ind_sem].ind_mat(est.asig.dar_mat(ind_gru_est));
+     if(ind_mat<0)continue;
+     tem_ale.materia=carrera->Sem[ind_sem].mat[ind_mat].identidad.dar_cod();
+     ind_gru=carrera->Sem[ind_sem].mat[ind_mat].ind_gru(est.asig.dar_gru(ind_gru_est));
+     if(ind_gru<0)continue;
+     tem_ale.grupo=carrera->Sem[ind_sem].mat[ind_mat].gru[ind_gru].identidad.dar_cod();
+     n_secc=carrera->Sem[ind_sem].mat[ind_mat].gru[ind_gru].n_secc();
+     for(ind_secc_est=0;ind_secc_est<n_secc;ind_secc_est++)
+        {
+         tem_ale.seccion=ind_secc_est;
+         ind_tiem=buscar_ale(tem_ale);
+         if(ind_tiem<0)continue;
+         agregar(tem,Tiempos[ind_tiem],acc_secc);
+        }
+    }
+ return tem;
+}
+
+/******************************************************************************/
+
+int Individuo::n_secc_pro(Profesor &pro)
+{
+ int ind_gru,ind_mat,ind_sem,ind_res;
+ int ind_gru_pro,ind_secc_pro,n_secc,acc_secc;
+ //Conteo de las secciones completas
+ for(ind_gru_pro=0,acc_secc=0;ind_gru_pro<pro.asig.dar_tol();ind_gru_pro++)
+    {
+     ind_sem=carrera->ind_seme(pro.asig.dar_sem(ind_gru_pro));
+     if(ind_sem<0)continue;
+     ind_mat=carrera->Sem[ind_sem].ind_mat(pro.asig.dar_mat(ind_gru_pro));
+     if(ind_mat<0)continue;
+     ind_gru=carrera->Sem[ind_sem].mat[ind_mat].ind_gru(pro.asig.dar_gru(ind_gru_pro));
+     if(ind_gru<0)continue;
+     acc_secc+=carrera->Sem[ind_sem].mat[ind_mat].gru[ind_gru].n_secc();
+    }
+ acc_secc+=ind_res<pro.dar_restriciones();
+ return acc_secc;
+}
+
+/******************************************************************************/
+
+TCita* Individuo::apilar_pro(Profesor &pro)
+{
+ int ind_gru,ind_mat,ind_sem,ind_res,ind_tiem;
+ int ind_gru_pro,ind_secc_pro,n_secc,acc_secc;
+ TCita *tem;
+ TCita tem2;
+ TAlelo tem_ale;
+ //Conteo de las secciones completas
+ for(ind_gru_pro=0,acc_secc=0;ind_gru_pro<pro.asig.dar_tol();ind_gru_pro++)
+    {
+     ind_sem=carrera->ind_seme(pro.asig.dar_sem(ind_gru_pro));
+     if(ind_sem<0)continue;
+     tem_ale.semestre=carrera->Sem[ind_sem].dar_nombre();
+     ind_mat=carrera->Sem[ind_sem].ind_mat(pro.asig.dar_mat(ind_gru_pro));
+     if(ind_mat<0)continue;
+     tem_ale.materia=carrera->Sem[ind_sem].mat[ind_mat].identidad.dar_cod();
+     ind_gru=carrera->Sem[ind_sem].mat[ind_mat].ind_gru(pro.asig.dar_gru(ind_gru_pro));
+     if(ind_gru<0)continue;
+     tem_ale.grupo=carrera->Sem[ind_sem].mat[ind_mat].gru[ind_gru].identidad.dar_cod();
+     n_secc=carrera->Sem[ind_sem].mat[ind_mat].gru[ind_gru].n_secc();
+     for(ind_secc_pro=0;ind_secc_pro<n_secc;ind_secc_pro++)
+        {
+         tem_ale.seccion=ind_secc_pro;
+         ind_tiem=buscar_ale(tem_ale);
+         if(ind_tiem<0)continue;
+         agregar(tem,Tiempos[ind_tiem],acc_secc);
+        }
+    }
+ for(ind_res=0;ind_res<pro.dar_restriciones();ind_res++,acc_secc++)
+    {
+     tem2=pro.dar_restri(ind_res);
+     agregar(tem,tem2,acc_secc);
+    }
+ return tem;
+}
+
+
+/******************************************************************************/
+
+int Individuo::solapamiento(TCita *t,int n)
+{
+ int i,j,k,x;
+ int s;
+ int *bandera;
+ TCita h,margen;
+ margen.Hora=2;
+ margen.Dia=0;
+ bandera=new int [n];/*Bandera para indicar si solapa o no*/
+ for(i=0;i<n;i++)
+    {
+     bandera[i]=0;/*inicializacion de bandera*/
+    }
+ k=n;
+ /*Algoritmo de comparacion*/
+ for(i=0,x=0;i<(n-1);i++,k--)
+    {
+     for(j=i+1;j<k;j++,x++)
+        {
+         if(t[i]>t[j])h=t[i]-t[j];
+            else h=t[j]-t[i];
+         if(h<margen)bandera[i]=1;/*El cruce es por igual hora o contigua*/
+        }
+    }
+ for(i=0,s=0;i<n;i++)
+    {
+     s+=bandera[i];
+    }
+ return s;
+}
+
+/******************************************************************************/
+
+int Individuo::apilar_sal(Estudiante &est,TJornada *jor)
+{
+ int ind_sem,ind_mat,ind_gru,ind_secc,ind_tiem,ind_sal;
+ int ind_gru_est,n_secc,ind_secc_est,n;
+ TJornada tem;
+ TAlelo tem_ale;
+ for(ind_gru_est=0,n=0;ind_gru_est<est.asig.dar_tol();ind_gru_est++)
+    {
+     ind_sem=carrera->ind_seme(est.asig.dar_sem(ind_gru_est));
+     if(ind_sem<0)continue;
+     tem_ale.semestre=carrera->Sem[ind_sem].dar_nombre();
+     ind_mat=carrera->Sem[ind_sem].ind_mat(est.asig.dar_mat(ind_gru_est));
+     if(ind_mat<0)continue;
+     tem_ale.materia=carrera->Sem[ind_sem].mat[ind_mat].identidad.dar_cod();
+     ind_gru=carrera->Sem[ind_sem].mat[ind_mat].ind_gru(est.asig.dar_gru(ind_gru_est));
+     if(ind_gru<0)continue;
+     tem_ale.grupo=carrera->Sem[ind_sem].mat[ind_mat].gru[ind_gru].identidad.dar_cod();
+     n_secc=carrera->Sem[ind_sem].mat[ind_mat].gru[ind_gru].n_secc();
+     for(ind_secc_est=0;ind_secc_est<n_secc;ind_secc_est++)
+        {
+         tem_ale.seccion=ind_secc_est;
+         ind_tiem=buscar_ale(tem_ale);
+         if(ind_tiem<0)continue;
+         tem.cita=Tiempos[ind_tiem];
+         tem.salon=carrera->sal[Salones[ind_tiem]];
+         agregar(jor,tem,n);
+        }
+    }
+ return n;
+}
+
+/******************************************************************************/
+
+double Individuo::desplazamiento(TJornada *jor,int n)
+{
+ int i;
+ double des;
+ TVector3d desplazamiento;
+ if(n<1)return 0.0;
+ ordenar(jor,Min_Max,n,0);
+ for(i=0;i<(n-1);i++)
+    {
+     desplazamiento=jor[i-1].salon.pos-jor[i].salon.pos;
+     des+=desplazamiento.Mag();
+    }
+ /////////////////////////////////////////////
+ return des/(n*dmax);
+}
+
+/******************************************************************************/
+
+void Individuo::estabilidad(void)
+{
+ int i;
+ TCita ini,fin;
+ ini=carrera->inicio();
+ fin=carrera->final();
+ for(i=0;i<longitud_i;i++)
+    {
+     if(Tiempos[i].Hora<ini.Hora)Tiempos[i].Hora=ini.Hora;
+     if(Tiempos[i].Hora>fin.Hora)Tiempos[i].Hora=fin.Hora;
+     if(Tiempos[i].Dia<ini.Dia)Tiempos[i].Dia=ini.Dia;
+     if(Tiempos[i].Dia>fin.Dia)Tiempos[i].Dia=fin.Dia;
+     if(Salones[i]<0)Salones[i]=0;
+     if(Salones[i]>=carrera->dar_salones())Salones[i]=(carrera->dar_salones()-1);
+    }
+}
+
+/******************************************************************************/
+
+double Individuo::fitnessp(void)
+{
+ int ind_pro,sol,n;
+ TCita *pila;
+ pila=NULL;
+ for(ind_pro=0;ind_pro<carrera->dar_profes();ind_pro++)
+    {
+     n=n_secc_pro(carrera->profe[ind_pro]);
+     if(n>0)
+       {
+        pila=apilar_pro(carrera->profe[ind_pro]);
+        sol=solapamiento(pila,n);
+        fp+=sol/n;
+       }
+    }
+ if(carrera->dar_profes()>0)fp=fp/carrera->dar_profes();
+ if(n>0)delete [] pila;
+ return fp;
+}
+
+/******************************************************************************/
+
+double Individuo::fitnesse(void)
+{
+ int ind_est,sol,n;
+ TCita *pila;
+ pila=NULL;
+ for(ind_est=0;ind_est<carrera->dar_estudiantes();ind_est++)
+    {
+     n=n_secc_est(carrera->est[ind_est]);
+     if(n>0)
+       {
+        pila=apilar_est(carrera->est[ind_est]);
+        sol=solapamiento(pila,n);
+        fe+=sol/n;
+       }
+    }
+ if(carrera->dar_estudiantes()>0)fe=fe/carrera->dar_estudiantes();
+ if(n>0)delete [] pila;
+ return fe;
+}
+
+/******************************************************************************/
+
+double Individuo::fitnesss(void)
+{
+ int ind_est,n,n_jor;
+ double des;
+ TJornada *pila;
+ for(ind_est=0,fs=0;ind_est<carrera->dar_estudiantes();ind_est++)
+    {
+     n=n_secc_est(carrera->est[ind_est]);
+     if(n>0)
+       {
+        n_jor=apilar_sal(carrera->est[ind_est],pila);
+        des=desplazamiento(pila,n_jor);
+        fe+=des;
+       }
+    }
+ if(carrera->dar_estudiantes()>0)fs=fs/carrera->dar_estudiantes();
+ if(n_jor>0)
+   {
+    delete [] pila;
+   }
+ return fs;
+}
+
+/*---------------------------PUBLICAS-----------------------------------------*/
+
+Individuo& Individuo::operator=(Individuo &a)
+{
+ int i;
+ if(*this==a)return (*this);
+ Tiempos=new TCita [longitud_i];
+ Salones=new int [longitud_i];
+ for(i=0;i<longitud_i;i++)
+    {
+     Tiempos[i]=a.Tiempos[i];
+     Salones[i]=a.Salones[i];
+    }
+ f=a.f;
+ fe=a.fe;
+ fs=a.fs;
+ fp=a.fp;
+ return (*this);
+}
+
+/******************************************************************************/
+
+int operator==(const Individuo &a,const Individuo &b)
+{
+ int i,acc;
+ for(i=0;i<a.longitud_i;i++)
+    {
+     if(a.Tiempos[i]!=b.Tiempos[i])return 0;
+     if(a.Salones[i]!=b.Salones[i])return 0;
+    }
+ return 1;
+}
+
+/******************************************************************************/
+
+int operator!=(const Individuo &a,const Individuo &b)
+{
+ if(a==b)return 0;
+   else return 1;
+}
+
+/******************************************************************************/
+
+int Hamming(const Individuo &a,const Individuo &b)
+{
+ int i,acc;
+ for(i=0,acc=0;i<a.longitud_i;i++)
+    {
+     acc+=Hamming(a.Tiempos[i],b.Tiempos[i]);
+     acc+=Hamming(a.Salones[i],b.Salones[i]);
+    }
+ return acc;
+}
+
+/******************************************************************************/
+
+double Individuo::fitness(void)
+{
+ f=fe=fp=fs=0;
+ fp=fitnessp();//Calculo del fitness del profesor
+ fe=fitnesse();//Calculo del fitness del estudiante
+ fs=fitnesss();//Calculo del fitness del salon
+ f=(fe+4*fp+fs)/6;//Calculo total del fitness
+ return f;
+}
+
+/******************************************************************************/
+
+void Individuo::Inicializar(void)
+{
+ randomize();
+ gen_ram();
+ return;
+}
+
+/******************************************************************************/
+
+void Individuo::gen_ram(void)
+{
+ int i;
+ TCita tem;
+ tem=carrera->final()-carrera->final();
+ for(i=0;i<longitud_i;i++)
+    {
+     random(Tiempos[i]);
+     Salones[i]=random(carrera->dar_salones());
+    }
+ estabilidad();
+ return;
+}
+
+/******************************************************************************/
+
+void Individuo::ingre_lc(int l)
+{
+ if(lc<0)lc=0;
+ if(lc>100)lc=100;
+ lc=l;
+ return;
+}
+
+/******************************************************************************/
+
+void Individuo::cruzar(const Individuo &a,const Individuo &b)
+{
+ int i;
+ for(i=0;i<(longitud_i*lc/100);i++)
+    {
+     Tiempos[i]=a.Tiempos[i];
+     Salones[i]=a.Salones[i];
+    }
+ for(;i<longitud_i;i++)
+    {
+     Tiempos[i]=b.Tiempos[i];
+     Salones[i]=b.Salones[i];
+    }
+ estabilidad();   
+}
+
+/******************************************************************************/
+
+void Individuo::mutar(void)
+{
+ int i,j;
+ i=random(longitud_i);
+ j=random(longitud_i);
+ random(Tiempos[i]);
+ Salones[j]=random(carrera->dar_salones());
+ return;
+}
+
+/******************************************************************************/
+
+int Individuo::dar_bits(void)
+{
+ return longitud_i*(16+32);//16 de TCita y 32 de int
+}
+
+/******************************************************************************/
+
+void Individuo::set_hor(Horario *carr)
+{
+ carrera=carr;
+}
+
+/******************************************************************************/
+
+Horario* Individuo::get_hor(void)
+{
+ return carrera;
+}
+
+/******************************************************************************/
+
+void Individuo::convertir(void)
+{
+ int ind_sem,ind_mat,ind_gru,ind_secc,ind_sal;
+ int n_sem,n_mat,n_gru,n_secc,n_sal,ind_gen;
+ String sal;
+ longitud_i=carrera->n_secc();
+ Tiempos=new TCita [longitud_i];
+ Salones=new int [longitud_i];
+ alelos=new TAlelo [longitud_i];
+ n_sem=carrera->dar_numero();
+ for(ind_sem=0,ind_gen=0;ind_sem<n_sem;ind_sem++)
+    {
+     n_mat=carrera->Sem[ind_sem].dar_numerom();
+     for(ind_mat=0;ind_mat<n_mat;ind_mat++)
+        {
+         n_gru=carrera->Sem[ind_sem].mat[ind_mat].dar_grupos();
+         for(ind_gru=0;ind_gru<n_gru;ind_gru++)
+            {
+             n_secc=carrera->Sem[ind_sem].mat[ind_mat].gru[ind_gru].n_secc();
+             for(ind_secc=0;ind_secc<n_secc;ind_secc++)
+                {
+                 Tiempos[ind_gen]=carrera->Sem[ind_sem].mat[ind_mat].gru[ind_gru].secc[ind_secc].time;
+                 sal=carrera->Sem[ind_sem].mat[ind_mat].gru[ind_gru].secc[ind_secc].dar_salon();
+                 ind_sal=carrera->ind_sal(sal.c_str());
+                 Salones[ind_gen]=ind_sal;
+                 alelos[ind_gen].seccion=ind_secc;
+                 alelos[ind_gen].grupo=carrera->Sem[ind_sem].mat[ind_mat].gru[ind_gru].identidad.dar_cod();
+                 alelos[ind_gen].materia=carrera->Sem[ind_sem].mat[ind_mat].identidad.dar_cod();
+                 alelos[ind_gen].semestre=carrera->Sem[ind_sem].dar_nombre();
+                }
+            }
+        }
+    }
+}
+
+/******************************************************************************/
+
+void Individuo::desconvertir(void)
+{
+ int ind_sem,ind_mat,ind_gru,ind_secc,ind_sal;
+ int ind_gen;
+ for(ind_gen=0;ind_gen<longitud_i;ind_gen++)
+    {
+     ind_sem=carrera->ind_seme(alelos[ind_gen].semestre.c_str());
+     if(ind_sem>=0)
+       {
+        ind_mat=carrera->Sem[ind_sem].ind_mat(alelos[ind_gen].materia.c_str());
+        if(ind_mat>=0)
+          {
+           ind_gru=carrera->Sem[ind_sem].mat[ind_mat].ind_gru(alelos[ind_gen].grupo.c_str());
+           if(ind_gru>=0)
+             {
+              ind_secc=alelos[ind_gen].seccion;
+              if(ind_secc>=0)
+                {
+                 carrera->Sem[ind_sem].mat[ind_mat].gru[ind_gru].secc[ind_secc].time=Tiempos[ind_gen];
+                 ind_sal=Salones[ind_gen];
+                 carrera->Sem[ind_sem].mat[ind_mat].gru[ind_gru].secc[ind_secc].ingre_sal(carrera->sal[ind_sal].identidad.ingre_cod());
+                }
+             }
+          }
+       }
+    }
+}
+
+/******************************************************************************/
+
+float Individuo::dar_fe(void)
+{
+ return fe;
+}
+
+/******************************************************************************/
+
+float Individuo::dar_fs(void)
+{
+ return fs;
+}
+
+/******************************************************************************/
+
+float Individuo::dar_fp(void)
+{
+ return fp;
+}
+
+/******************************************************************************/
+
+float Individuo::dar_f(void)
+{
+ return f;
+}
+
+/******************************************************************************/
+
+ostream& operator<< (ostream &co, const Individuo &a)
+{
+ int i;
+ co << a.longitud_i <<endl;
+ for(i=0;i<a.longitud_i;i++)
+    {
+     co << a.Tiempos[i] << "\t";
+    }
+ co << endl;
+ for(i=0;i<a.longitud_i;i++)
+    {
+     co << a.carrera->sal[a.Salones[i]] << "\t";
+    }
+ co << endl;
+ return co;
+}
+
+/******************************************************************************/
+
+istream& operator>> (istream &ci,Individuo &a)
+{
+ int i,ind_sal;
+ Salon tem;
+ ci >> a.longitud_i;
+ for(i=0;i<a.longitud_i;i++)
+    {
+     ci >> a.Tiempos[i];
+    }
+ for(i=0;i<a.longitud_i;i++)
+    {
+     ci >> tem;
+     ind_sal=a.carrera->ind_sal(tem.identidad.dar_cod());
+     a.Salones[i]=ind_sal;
+    }
+
+ return ci;
+}
+
+
+/******************************************************************************/
+
+///////////////////////////FUNCIONES GLOBALES///////////////////////////////////
+
+
+
+
+
+
